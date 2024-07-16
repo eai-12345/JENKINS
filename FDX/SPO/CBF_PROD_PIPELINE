@@ -120,27 +120,14 @@ pipeline {
                         def nexusEval = runNexusPolicyEvaluation iqTarget: "build/",
                                 svcUser: "${SERVICE_ACCOUNT_USER}",
                                 svcPwd: "${SERVICE_ACCOUNT_PASSWORD}"
-
- 
-
-                        saveNexusPolicyEvaluation applicationVersion: APP_VERSION,
-
+                                saveNexusPolicyEvaluation applicationVersion: APP_VERSION,
                                 zone: 'Internal Usage - Back Office (Includes COPE mobile Devices, Desktop Development, Testing, support and maintenance)',
-
                                 iqRptId: nexusEval.get("iqRptId"),
-
                                 svcUser: "${SERVICE_ACCOUNT_USER}",
-
                                 svcPwd: "${SERVICE_ACCOUNT_PASSWORD}"
-
- 
-
-                        submitFossRequestForNexusPolicyEvaluation applicationVersion: APP_VERSION,
-
+                                submitFossRequestForNexusPolicyEvaluation applicationVersion: APP_VERSION,
                                 svcUser: "${SERVICE_ACCOUNT_USER}",
-
                                 svcPwd: "${SERVICE_ACCOUNT_PASSWORD}"
-
                     }
 
                 }
@@ -149,46 +136,26 @@ pipeline {
 
         }
 
- 
-
         stage("Fortify") {
-
                when {
-
                               expression {
-
                                              params.FORTIFY_ANALYSIS == true
-
                               }
 
                }
-
- 
-
                steps {
-
                               echo 'Stashing source for fortify'
-
                               stash includes: '**', name: 'source'
-
                               echo 'Get fortify scripts'
-
                               getFortifyScripts()
-
                               echo 'Running fortify analysis'
-
                               startFortifyAnalysis("${CF_ORG}_${APP_NAME}")
 
                }
 
         }
-
- 
-
         stage('Nexus Upload') {
-
             environment {
-
                 NEXUS_GROUP_ID = "eai${CF_ORG}.${GROUP_ID}"
 
             }
@@ -196,31 +163,18 @@ pipeline {
             steps {
 
                 unstash 'builtArtifact'
-
                 nexusArtifactUploader nexusUrl: "${NEXUS_URL_UPLOAD}",
-
                         credentialsId: "${NEXUS_CREDS_ID}",
-
                         repository: "${NEXUS_REPO_NAME}",
-
                         nexusVersion: 'nexus3',
-
                         protocol: 'https',
-
                         groupId: "${env.NEXUS_GROUP_ID}",
-
                         version: "${APP_VERSION}",
-
                         artifacts: [[
-
                                             artifactId: "${APP_NAME}",
-
                                             classifier: '',
-
                                             file      : "build/libs/${APP_NAME}-${APP_VERSION}.jar",
-
                                             type      : 'jar'
-
                                     ]]
 
             }
@@ -230,15 +184,9 @@ pipeline {
  
 
         stage("Deploy in Release") {
-
- 
-
             environment {
-
                 CF_SPACE = "release"
-
                 CF_ORG = "3540420"
-
                 CURR_SPACE = "${CF_SPACE}"
 
             }
@@ -248,151 +196,72 @@ pipeline {
             stages{
 
                 // Start of CLW stage
-
- 
-
                 stage('Deploy to CLW')
-
                         {  // Start of Deploy to CLW stage
-
- 
-
                             stages{
-
                                 // Start of CLW stages
-
- 
-
                                 // create service and deploy - CLWDEV4
-
                                 stage("CreateService And Deploy to release space clwdev4-az1")
-
                                         {
-
- 
-
                                             environment {
-
                                                 PCF_FOUNDATION = "clwdev4-az1"
-
                                                 CF_API =
-
                                                 CF_FOUNDATION = "${PCF_FOUNDATION}"
-
                                                 CURR_CF_API = "${CF_API}"
-
                                                 CURR_PROFILE= "releaseCLW"
-
                                                 INSTANCES_COUNT="1"
 
                                             }
-
                                             steps {
-
                                                 setupServicesAndDeployIntoFoundation()
-
                                             }
 
                                         }
-
- 
-
                                 stage("CreateService And Deploy to release space clwdev4-az2")
-
                                         {
-
- 
-
                                             environment {
-
                                                 PCF_FOUNDATION = "clwdev4-az2"
-
                                                 CF_API =
-
                                                 CF_FOUNDATION = "${PCF_FOUNDATION}"
-
                                                 CURR_CF_API = "${CF_API}"
-
                                                 CURR_PROFILE= "releaseCLW"
-
                                                 INSTANCES_COUNT="1"
-
                                             }
 
                                             steps {
-
                                                 setupServicesAndDeployIntoFoundation()
-
                                             }
-
                                         }
-
- 
 
                                 stage("CreateService And Deploy to release space clwdev4-az3")
-
                                         {
-
- 
-
                                             environment {
-
                                                 PCF_FOUNDATION = "clwdev4-az3"
-
                                                 CF_API
-
                                                 CF_FOUNDATION = "${PCF_FOUNDATION}"
-
                                                 CURR_CF_API = "${CF_API}"
-
                                                 CURR_PROFILE= "releaseCLW"
-
                                                 INSTANCES_COUNT="1"
-
                                             }
 
                                             steps {
-
                                                 setupServicesAndDeployIntoFoundation()
-
                                             }
-
                                         }
-
- 
 
                             } // end of CLW stages
 
- 
-
                         } // End of Deploy to CLW stage
-
- 
-
             } // End of CLW stage
-
- 
-
         }
-
     }
-
- 
-
     post {
-
         always {
-
             cleanWs()
-
             always{
-
                 junit allowEmptyResults: true, testResults: '**/build/test-results/test/**/*.xml'
-
                 dry canComputeNew: false, defaultEncoding: '', healthy: '', pattern: '', unHealthy: ''
-
                 zip archive: true, dir: 'build/test-results/test/', glob: '', zipFile: 'build/test-results/test.zip'
-
             }
 
         }
