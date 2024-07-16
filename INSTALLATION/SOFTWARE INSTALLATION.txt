@@ -145,7 +145,14 @@ conda update conda
 
 conda update anaconda-navigator
 
+source ~/anaconda3/bin/activate
+
 conda activate
+
+conda list anaconda
+
+conda info
+
 
 ************************************
     INSTALL CLOUDBEES 2.452.2.4
