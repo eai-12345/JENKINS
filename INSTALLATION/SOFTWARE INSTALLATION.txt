@@ -88,6 +88,66 @@ newgrp docker
 docker run hello-world
 
 ************************************
+    INSTALL NODEJS
+************************************
+sudo apt update
+
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+
+sudo apt install -y nodejs
+
+node -v
+
+npm -v
+
+
+sudo apt install -y build-essential
+
+************************************
+    INSTALL ANGULAR
+************************************
+sudo npm install -g @angular/cli
+
+ng version
+
+ng new my-angular-app
+
+************************************
+    INSTALL ANGULAR
+************************************
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+
+sudo apt update
+
+sudo apt install yarn
+
+sudo apt install --no-install-recommends yarn
+
+yarn --version
+
+
+************************************
+    INSTALL ANACONDA
+************************************
+wget https://repo.anaconda.com/archive/Anaconda3-2023.03-Linux-x86_64.sh
+
+sha256sum Anaconda3-2023.03-Linux-x86_64.sh
+
+bash Anaconda3-2023.03-Linux-x86_64.sh
+
+source ~/.bashrc
+
+conda list
+
+conda update conda
+
+conda update anaconda-navigator
+
+conda activate
+
+************************************
     INSTALL CLOUDBEES 2.452.2.4
 ************************************
 
