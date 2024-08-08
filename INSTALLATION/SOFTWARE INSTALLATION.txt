@@ -54,7 +54,7 @@ source ~/.bashrc
 ************************************
 INSTALL GIT
 ************************************
-sudo apt install git
+sudo apt install git -y
 git --version
 
 git config --global user.name "subhashis2018"
@@ -69,6 +69,8 @@ git config --list
 sudo snap install curl 
 
 sudo apt  install curl 
+
+sudo apt  install docker.io -y
 
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
@@ -98,7 +100,35 @@ echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" \
 
 sudo apt-get update
 
-sudo apt-get install jenkins
+sudo apt-get install jenkins -y
+
+sudo systemctl status jenkins
+
+sudo systemctl start jenkins
+
+sudo systemctl restart jenkins
+
+sudo systemctl enable jenkins
+
+************************************
+          UNINSTALL JENKINS 
+************************************
+sudo systemctl stop jenkins
+
+sudo apt-get remove --purge jenkins
+
+sudo apt-get autoremove
+sudo apt-get autoclean
+
+sudo rm -rf /etc/jenkins
+sudo rm -rf /var/lib/jenkins
+sudo rm -rf /var/log/jenkins
+
+sudo deluser --remove-home jenkins
+sudo delgroup jenkins
+
+sudo systemctl status jenkins
+
 
 
 ************************************
