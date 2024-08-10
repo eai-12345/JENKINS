@@ -88,6 +88,16 @@ newgrp docker
 
 docker run hello-world
 
+
+************************************
+          INSTALL BUILDX
+************************************
+
+mkdir -p ~/.docker/cli-plugins/
+curl -SL https://github.com/docker/buildx/releases/download/v0.11.2/buildx-v0.11.2.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx
+chmod +x ~/.docker/cli-plugins/docker-buildx
+
+
 ************************************
           INSTALL JENKINS 2.452.3
 ************************************
@@ -101,6 +111,13 @@ echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" \
 sudo apt-get update
 
 sudo apt-get install jenkins -y
+
+sudo systemctl restart jenkins
+sudo systemctl restart docker
+
+
+sudo usermod -aG docker jenkins
+
 
 sudo systemctl status jenkins
 
@@ -128,6 +145,25 @@ sudo deluser --remove-home jenkins
 sudo delgroup jenkins
 
 sudo systemctl status jenkins
+
+
+************************************
+          JENKINS  CHANGE HTTP_PORT
+************************************
+
+1. sudo systemctl stop jenkins
+
+2. sudo nano /etc/default/jenkins
+
+3. HTTP_PORT=9090
+
+4. sudo systemctl edit --full jenkins
+
+   Environment="JENKINS_PORT=9090"
+
+5. sudo systemctl daemon-reload
+
+6. sudo systemctl restart jenkins
 
 
 
