@@ -72,6 +72,8 @@ sudo apt  install curl
 
 sudo apt  install docker.io -y
 
+sudo usermod -aG docker jenkins
+
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
 sudo apt-get update
@@ -84,9 +86,16 @@ sudo groupadd docker
 
 sudo usermod -aG docker $USER
 
+
 newgrp docker
 
 docker run hello-world
+
+
+sudo groupadd podman
+sudo usermod -aG podman $USER
+
+newgrp podman
 
 
 ************************************
@@ -96,6 +105,9 @@ docker run hello-world
 mkdir -p ~/.docker/cli-plugins/
 curl -SL https://github.com/docker/buildx/releases/download/v0.11.2/buildx-v0.11.2.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx
 chmod +x ~/.docker/cli-plugins/docker-buildx
+
+
+docker buildx create --use
 
 
 ************************************
@@ -290,3 +302,60 @@ conda info
 ************************************
           INSTALL OPENSHIFT
 ************************************
+
+
+
+
+
+ssh master@Worker-Node-1
+
+ssh worker1@Master-Node
+ssh worker2@Master-Node
+
+ssh-keygen -t ed25519 -C "subhashis.sarangi@gmail.com"
+
+ip --brief addr show
+
+
+ssh master@192.168.153.129
+
+I have created two virtual machines in vmwire workstation player. I want to establish connection between them
+for jenkins jobs so that one will be master and another will be slave. In the master I will run few stages of 
+jenkins and in the slave run few stages. I am giving you all the details of master and slave, please help me 
+configuring 
+
+master@Master-Node:~$ ip --brief addr show
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ens33            UP             192.168.153.128/24 fe80::f79e:8363:ac56:884a/64 
+docker0          DOWN           172.17.0.1/16 
+
+worker1@Worker-Node-1:~$ ip --brief addr show
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ens33            UP             192.168.153.129/24 fe80::33ca:14a6:3d22:11b5/64 
+docker0          DOWN           172.17.0.1/16 
+
+If you need any other details please let me know. I have tried using ssh but it is asking me for password and 
+even after giving the correct password the authentication fails. is there any other configuration I have to do.
+
+
+ssh-keygen -t rsa -b 4096 -C "jenkins-master"
+ssh-copy-id worker1@192.168.153.129
+ssh worker1@192.168.153.129
+
+
+
+ssh-keygen -t rsa -b 4096 -C "jenkins-worker1"
+ssh-copy-id master@192.168.153.128
+ssh master@192.168.153.128
+
+
+
+************************************************************************
+          INSTALL AND CONFIGURE KUBERNETES
+************************************************************************
+
+
+
+
+
+

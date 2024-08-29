@@ -1,0 +1,14 @@
+pipeline{
+    agent any
+    tools{
+        maven 'maven-3.9.6'
+        jdk 'jdk-17'
+    }
+    environment{
+        GITHUB_REPO_URL= 'https://github.com/subhashis2018/springboot_cicd_1.git'
+        GITHUB_CREDENTIAL_ID='github-auth'
+        DOCKER_IMAGE='subhashis2022/springboot_cicd_1'
+        DOCKER_TAG='${env.BUILD_ID}'
+        DOCKER_CREDENTIAL_ID='docker-auth'
+    }
+}

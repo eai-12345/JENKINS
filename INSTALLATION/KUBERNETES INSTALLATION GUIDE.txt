@@ -1,0 +1,271 @@
+
+master-node  :  launch-wizard-1
+worker-node  :  launch-wizard-4
+
+vpc : 172.31.0.0/16
+**********************************************************************************************************************
+PORT RANGE CONFIGURATION
+**********************************************************************************************************************
+Protocol	Direction	Port Range	Purpose	                                      Used By
+TCP	      Inbound	6443	Kubernetes API server	                                All
+TCP	      Inbound	2379-2380	etcd server client API	                          kube-apiserver, etcd
+TCP	      Inbound	10250	Kubelet API	                                            Self, Control plane
+TCP	      Inbound	10259	kube-scheduler	                                      Self
+TCP	      Inbound	10257	kube-controller-manager	Self
+
+Although etcd ports are included in control plane section, you can also host your own etcd cluster externally or on custom ports.
+
+Worker node(s)
+Protocol	   Direction	      Port Range	          Purpose	Used By                          Accessible       
+TCP	          Inbound	            10250	                Kubelet API	                         Self, Control plane                       172.31.0.0/16
+TCP	          Inbound	            30000-32767	          NodePort Services†	                    All                                      0.0.0.0
+**********************************************************************************************************************
+
+After port config completion  run the command on each machine
+
+sudo swapoff -a
+
+
+Connect to all worker from master
+****************************************************************
+master-node :13.234.117.27
+
+worker-node-1: ssh -i ~/.ssh/k8s-node.pem ubuntu@13.233.245.210
+worker-node-2: ssh -i ~/.ssh/k8s-node.pem ubuntu@65.0.4.147
+
+
+****************************************************************
+CONFIGURE CLI PROMPT
+****************************************************************
+sudo vim /etc/hosts
+
+13.127.196.96 master
+52.66.199.203 worker1
+3.111.219.25 worker2
+
+sudo hostnamectl set-hostname master
+sudo hostnamectl set-hostname worker1
+sudo hostnamectl set-hostname worker2
+
+ nano /etc/network/interfaces
+
+
+*********************************************************************************************************************************************************************
+                                                              INSTALLING  CONTAINERD
+*********************************************************************************************************************************************************************
+
+       
+cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
+overlay
+br_netfilter
+EOF
+
+
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+# sysctl params required by setup, params persist across reboots
+
+cat <<EOF | sudo tee /etc/sysctl.d/99-kubernates-crl.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF	  
+
+# Apply sysctl params without reboot
+
+sudo sysctl --system 
+   
+sudo apt-get update 
+
+sudo apt-get -y install containerd
+
+sudo mkdir -p /etc/containerd
+
+containerd config default | sudo tee /etc/containerd/config.toml
+
+sudo systemctl restart containerd
+
+service containerd status
+
+sysctl status containerd
+
+
+*********************************************************************************************************************************************************************
+                                                            INSTALLING KUBERNATES
+*********************************************************************************************************************************************************************
+
+to see all version of kubeadm : apt-cache madison kubeadm
+
+touch kubernates.sh
+vim kubernates.sh
+
+chmod u+x kubernates.sh
+
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl
+
+
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+sudo apt-get update
+
+
+
+sudo apt-get install -y kubelet=1.21.0-00  kubeadm=1.21.0-00 kubectl=1.21.0-00
+
+ 
+
+sudo apt-mark hold kubelet kubeadm kubectl
+
+services kubelet status
+
+vim install-k8s-components.sh
+
+chmod u+x install-k8s-components.sh
+
+./install-k8s-components.sh
+
+sudo kubeadm init
+
+kubeadm init --config kubeadm-config.yaml --ignore-preflight-errors=all
+
+
+To start using your cluster, you need to run the following as a regular user:
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 172.31.43.5:6443 --token qtxt3k.40cqh19wpwjn58ez \
+        --discovery-token-ca-cert-hash sha256:250b05e42361468f3e5dbdee73338dc9dc5733da7648fe2709429b5ed218a68d
+		
+		
+		
+		
+kubectl apply -f weave.yaml
+
+kubectl get node
+
+kubectl get pod -n kube-system
+
+kubectl get pod -n kube-system -o wide
+
+kubectl get node -o wide
+
+kubectl logs weave-net-2gbrb -n kube-system -c weave
+
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+vim kubeadm-config.yaml
+
+# kubeadm-config.yaml
+kind: ClusterConfiguration
+apiVersion: kubeadm.k8s.io/v1beta3
+kubernetesVersion: v1.21.0
+---
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+cgroupDriver: systemd
+Such a configuration file can then be passed to the kubeadm command:
+
+kubeadm init --config kubeadm-config.yaml
+
+
+
+-----------------------------------------------------------------------------------
+                           INSTALLING NETWORK - WEAVE-NET
+-----------------------------------------------------------------------------------
+
+kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+
+wget "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')" -O weave.yaml
+
+ls
+
+cat weave.yaml
+
+vim weave.yaml
+
+--ipalloc-range=100.32.0.0/12
+
+kubectl apply -f weave.yaml
+
+kubeadm token create --print-join-command
+
+
+
+kubectl get node
+
+kubectl get pod -n kube-system
+
+kubectl describe pod  coredns-558bd4d5db-h8qs5 -n kube-system
+
+kubectl get pod -n kube-system -o wide
+
+kubectl get node -n kube-system -o wide
+
+
+
+-----------------------------------------------------------------------------
+UNINSTALLING KUBERNETES
+--------------------------
+
+kubeadm reset -y
+sudo apt-get purge kubeadm kubectl kubelet kubernetes-cni kube* -y
+sudo apt-get autoremove -y
+sudo rm -rf ~/.kube
+
+And restart the computer
+
+-----------------------------------------------------------
+
+---------------------------------------------------------
+                    END OF INSTALLATION
+---------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                                               YOUTUBE
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
